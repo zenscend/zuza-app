@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { createHmac } from 'crypto'
+import { jwtVerify } from 'jose'
 import {
   renderConfirmEmail,
   renderMagicLinkEmail,
@@ -9,22 +9,24 @@ import {
 
 const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@zuzatech.com'
 
-// Supabase Auth Hook secrets are in the format "v1,whsec_<base64>"
-// Strip the prefix and base64-decode to get the raw key bytes.
-function getRawSecret(): Buffer | null {
+// Supabase Auth Hooks authenticate via JWT Bearer token in the
+// Authorization header, signed with HS256 using the hook secret.
+// Secret format: "v1,whsec_<base64>" — strip prefix, decode to raw bytes.
+async function verifyHookJwt(request: Request): Promise<boolean> {
   const raw = process.env.SUPABASE_AUTH_HOOK_SECRET ?? ''
-  if (!raw) return null
-  const base64 = raw.replace(/^v1,whsec_/, '')
-  return Buffer.from(base64, 'base64')
-}
+  if (!raw) return true // skip verification in local dev if secret not set
 
-async function verifySignature(request: Request, body: string): Promise<boolean> {
-  const key = getRawSecret()
-  if (!key) return true // no secret configured — skip in local dev
-  const signature = request.headers.get('x-supabase-signature')
-  if (!signature) return false
-  const expected = createHmac('sha256', key).update(body).digest('hex')
-  return signature === expected
+  const authHeader = request.headers.get('authorization') ?? ''
+  const token = authHeader.replace(/^Bearer\s+/i, '')
+  if (!token) return false
+
+  try {
+    const keyBytes = Buffer.from(raw.replace(/^v1,whsec_/, ''), 'base64')
+    await jwtVerify(token, keyBytes)
+    return true
+  } catch {
+    return false
+  }
 }
 
 interface HookPayload {
@@ -42,25 +44,23 @@ interface HookPayload {
 }
 
 export async function POST(request: Request) {
-  const rawBody = await request.text()
-
-  if (!(await verifySignature(request, rawBody))) {
+  if (!(await verifyHookJwt(request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   let payload: HookPayload
   try {
-    payload = JSON.parse(rawBody)
+    payload = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
   const { user, email_data } = payload
   const { email_action_type, token_hash, site_url, redirect_to } = email_data
-  const name   = user.user_metadata?.full_name
-  const to     = user.email
-  const base   = site_url || process.env.NEXT_PUBLIC_APP_URL || 'https://app.zuzatech.com'
-  const next   = redirect_to || '/dashboard'
+  const name = user.user_metadata?.full_name
+  const to   = user.email
+  const base = site_url || process.env.NEXT_PUBLIC_APP_URL || 'https://app.zuzatech.com'
+  const next = redirect_to || '/dashboard'
 
   try {
     let subject: string
@@ -82,7 +82,6 @@ export async function POST(request: Request) {
       html = await renderPasswordResetEmail(name, url)
 
     } else {
-      // email_change and unknown types — acknowledge without sending
       return NextResponse.json({ message: 'ok' })
     }
 
@@ -92,7 +91,6 @@ export async function POST(request: Request) {
 
   } catch (err) {
     console.error('[email/auth] delivery failed:', err)
-    // Return 200 so Supabase doesn't retry — failure is logged server-side
     return NextResponse.json({ message: 'ok', warning: 'email delivery failed' })
   }
 }
