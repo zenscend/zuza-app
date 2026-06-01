@@ -8,54 +8,45 @@ import { NavLink } from '@/components/layout/NavLink'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AgentLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
-  let profile = null
-  try {
-    profile = await getProfile(supabase, user.id)
-  } catch {
-    // profile may not exist yet
-  }
+  const profile = await getProfile(supabase, user.id)
 
-  const isAdmin       = profile?.role === 'admin' || profile?.role === 'super_admin'
-  const isFieldAgent  = profile?.role === 'field_agent'
+  const allowedRoles = ['field_agent', 'admin', 'super_admin']
+  if (!allowedRoles.includes(profile.role)) redirect('/dashboard')
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center gap-4">
 
-          <Link href="/dashboard" className="shrink-0">
+          <Link href="/my-vendors" className="shrink-0">
             <ZuzaLogo size="sm" />
           </Link>
 
           <Separator orientation="vertical" className="h-5" />
 
+          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground select-none">
+            Field
+          </span>
+
+          <Separator orientation="vertical" className="h-5" />
+
           <nav className="flex items-center gap-1">
-            <NavLink href="/dashboard" exact>Dashboard</NavLink>
+            <NavLink href="/my-vendors">My Vendors</NavLink>
+            <NavLink href="/onboard">Onboard</NavLink>
           </nav>
 
-          {/* Field agent shortcuts */}
-          {isFieldAgent && (
+          {/* Admins get quick jump to admin panel */}
+          {(profile.role === 'admin' || profile.role === 'super_admin') && (
             <>
               <Separator orientation="vertical" className="h-5" />
               <nav className="flex items-center gap-1">
-                <NavLink href="/my-vendors">My Vendors</NavLink>
-                <NavLink href="/onboard">Onboard</NavLink>
-              </nav>
-            </>
-          )}
-
-          {/* Admin shortcuts */}
-          {isAdmin && (
-            <>
-              <Separator orientation="vertical" className="h-5" />
-              <nav className="flex items-center gap-1">
-                <NavLink href="/admin/vendors">Vendors</NavLink>
+                <NavLink href="/admin/vendors">Admin</NavLink>
               </nav>
             </>
           )}
@@ -63,16 +54,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
             <UserMenu
-              name={profile?.full_name ?? null}
+              name={profile.full_name ?? null}
               email={user.email ?? null}
-              avatarUrl={profile?.avatar_url ?? null}
-              role={profile?.role ?? null}
+              avatarUrl={profile.avatar_url ?? null}
+              role={profile.role ?? null}
             />
           </div>
         </div>
       </header>
-
-      {children}
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        {children}
+      </main>
     </div>
   )
 }

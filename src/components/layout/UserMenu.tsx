@@ -21,12 +21,14 @@ interface Props {
 
 const ROLE_LABELS: Record<UserRole, string> = {
   vendor:      'Vendor',
+  field_agent: 'Field Agent',
   admin:       'Admin',
   super_admin: 'Super Admin',
 }
 
 const ROLE_COLORS: Record<UserRole, string> = {
   vendor:      'bg-muted text-muted-foreground',
+  field_agent: 'bg-teal-500/15 text-teal-600 dark:text-teal-400',
   admin:       'bg-primary/20 text-primary',
   super_admin: 'bg-primary text-primary-foreground',
 }
