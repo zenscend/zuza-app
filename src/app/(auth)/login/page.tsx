@@ -6,7 +6,13 @@ import { MagicLinkForm } from '@/components/auth/MagicLinkForm'
 import { GoogleButton } from '@/components/auth/AuthProviderButtons'
 import Link from 'next/link'
 
-export default function LoginPage() {
+interface Props {
+  searchParams: Promise<{ error?: string }>
+}
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { error } = await searchParams
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
@@ -14,6 +20,14 @@ export default function LoginPage() {
         <CardDescription>Sign in to your Zuza account</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+
+        {/* Callback errors surface here (e.g. expired link) */}
+        {error && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {decodeURIComponent(error)}
+          </div>
+        )}
+
         <GoogleButton />
 
         <div className="flex items-center gap-3">

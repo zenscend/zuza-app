@@ -1,4 +1,4 @@
-export type UserRole = 'vendor' | 'admin' | 'super_admin'
+export type UserRole = 'vendor' | 'field_agent' | 'admin' | 'super_admin'
 export type BillingStatus = 'free' | 'active' | 'past_due' | 'cancelled'
 export type VendorStatus = 'pending' | 'active' | 'inactive' | 'rejected'
 export type BusinessType = 'kota_outlet' | 'chisanyama' | 'street_food' | 'spaza_shop' | 'other'
