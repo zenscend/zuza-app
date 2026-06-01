@@ -50,7 +50,7 @@ export async function resendConfirmation(client: SupabaseClient, email: string) 
     type: 'signup',
     email,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zuzatech.com')}/api/auth/callback`,
     },
   })
   if (error) throw new Error(friendlyAuthError(error.message))
@@ -61,7 +61,7 @@ export async function signInWithGoogle(client: SupabaseClient) {
   const { data, error } = await client.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      redirectTo: `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zuzatech.com')}/api/auth/callback`,
     },
   })
   if (error) throw new Error(friendlyAuthError(error.message))
@@ -73,7 +73,7 @@ export async function sendMagicLink(client: SupabaseClient, email: string) {
   const { error } = await client.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zuzatech.com')}/api/auth/callback`,
     },
   })
   if (error) throw new Error(friendlyAuthError(error.message))

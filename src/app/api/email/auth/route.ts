@@ -37,8 +37,9 @@ export async function POST(request: Request) {
   const { email_action_type, token_hash, site_url, redirect_to } = email_data
   const name = user.user_metadata?.full_name
   const to   = user.email
-  const base = site_url || process.env.NEXT_PUBLIC_APP_URL || 'https://app.zuzatech.com'
-  const next = redirect_to || '/dashboard'
+  // Always use our app URL — site_url from the payload is Supabase's internal URL
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://app.zuzatech.com'
+  const next = '/dashboard'
 
   try {
     let subject: string

@@ -9,6 +9,8 @@ import {
   Img,
 } from '@react-email/components'
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.zuzatech.com'
+
 interface Props {
   preview: string
   children: React.ReactNode
@@ -30,16 +32,13 @@ export function EmailLayout({ preview, children }: Props) {
 
           {/* Logo */}
           <Section style={{ textAlign: 'center', marginBottom: 32 }}>
-            <Text style={{
-              fontSize: 28,
-              fontWeight: 700,
-              color: '#ffffff',
-              letterSpacing: '-0.5px',
-              margin: 0,
-              fontFamily: FONT,
-            }}>
-              ZU<span style={{ color: BRAND_YELLOW }}>ZA</span>
-            </Text>
+            <Img
+              src={`${APP_URL}/zuza-logo.png`}
+              alt="Zuza"
+              width={72}
+              height={76}
+              style={{ margin: '0 auto', display: 'block' }}
+            />
           </Section>
 
           {/* Card */}
