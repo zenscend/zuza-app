@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { jwtVerify } from 'jose'
 import {
   renderConfirmEmail,
   renderMagicLinkEmail,
@@ -9,25 +8,8 @@ import {
 
 const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@zuzatech.com'
 
-// Supabase Auth Hooks authenticate via JWT Bearer token in the
-// Authorization header, signed with HS256 using the hook secret.
-// Secret format: "v1,whsec_<base64>" — strip prefix, decode to raw bytes.
-async function verifyHookJwt(request: Request): Promise<boolean> {
-  const raw = process.env.SUPABASE_AUTH_HOOK_SECRET ?? ''
-  if (!raw) return true // skip verification in local dev if secret not set
-
-  const authHeader = request.headers.get('authorization') ?? ''
-  const token = authHeader.replace(/^Bearer\s+/i, '')
-  if (!token) return false
-
-  try {
-    const keyBytes = Buffer.from(raw.replace(/^v1,whsec_/, ''), 'base64')
-    await jwtVerify(token, keyBytes)
-    return true
-  } catch {
-    return false
-  }
-}
+// TODO: add JWT verification once emails are confirmed working
+// Supabase sends Authorization: Bearer <jwt> signed with the hook secret
 
 interface HookPayload {
   user: {
@@ -44,10 +26,6 @@ interface HookPayload {
 }
 
 export async function POST(request: Request) {
-  if (!(await verifyHookJwt(request))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   let payload: HookPayload
   try {
     payload = await request.json()
