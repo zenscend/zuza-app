@@ -15,6 +15,16 @@ export async function getUser(
   return data
 }
 
+export async function listUsers(client: SupabaseClient): Promise<User[]> {
+  // SWAP POINT: replace with fetch('https://api.zuzatech.com/users')
+  const { data, error } = await client
+    .from('users')
+    .select('*, role:user_role(*)')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
 export async function updateUser(
   client: SupabaseClient,
   userId: string,
