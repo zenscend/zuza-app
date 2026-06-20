@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getProfile } from '@/services/profileService'
+import { getUser } from '@/services/userService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -12,9 +12,9 @@ export default async function DashboardPage() {
   let profile = null
   if (user) {
     try {
-      profile = await getProfile(supabase, user.id)
+      profile = await getUser(supabase, user.id)
     } catch {
-      // Profile may not exist yet if trigger hasn't run
+      // User row may not exist yet if trigger hasn't run
     }
   }
 

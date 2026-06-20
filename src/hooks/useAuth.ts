@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
-import { getSession, getCurrentUser } from '@/services/authService'
+import { getSession } from '@/services/authService'
 
 interface AuthState {
   user: User | null

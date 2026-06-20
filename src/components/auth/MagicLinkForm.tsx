@@ -7,8 +7,6 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
-import { sendMagicLink } from '@/services/authService'
 import { Mail } from 'lucide-react'
 
 const schema = z.object({
@@ -30,14 +28,18 @@ export function MagicLinkForm() {
 
   async function onSubmit(values: FormValues) {
     setServerError(null)
-    try {
-      const supabase = createClient()
-      await sendMagicLink(supabase, values.email)
-      setSentEmail(values.email)
-      setSent(true)
-    } catch (err) {
-      setServerError((err as any)?.message ?? 'Failed to send link')
+    const res = await fetch('/api/auth/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: values.email }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      setServerError(json.error ?? 'Failed to send link')
+      return
     }
+    setSentEmail(values.email)
+    setSent(true)
   }
 
   if (sent) {

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getProfile } from '@/services/profileService'
+import { getUser } from '@/services/userService'
+import { ROLE } from '@/types'
 import { ZuzaLogo } from '@/components/layout/ZuzaLogo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { UserMenu } from '@/components/layout/UserMenu'
@@ -14,10 +15,16 @@ export default async function AgentLayout({ children }: { children: React.ReactN
 
   if (!user) redirect('/login')
 
-  const profile = await getProfile(supabase, user.id)
+  let profile
+  try {
+    profile = await getUser(supabase, user.id)
+  } catch {
+    redirect('/dashboard')
+  }
 
-  const allowedRoles = ['field_agent', 'admin', 'super_admin']
-  if (!allowedRoles.includes(profile.role)) redirect('/dashboard')
+  const roleName = profile.role?.name ?? null
+  const agentRoles = [ROLE.FIELD_AGENT, ROLE.ADMIN, ROLE.SUPER_ADMIN] as string[]
+  if (!roleName || !agentRoles.includes(roleName)) redirect('/dashboard')
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +49,7 @@ export default async function AgentLayout({ children }: { children: React.ReactN
           </nav>
 
           {/* Admins get quick jump to admin panel */}
-          {(profile.role === 'admin' || profile.role === 'super_admin') && (
+          {(roleName === ROLE.ADMIN || roleName === ROLE.SUPER_ADMIN) && (
             <>
               <Separator orientation="vertical" className="h-5" />
               <nav className="flex items-center gap-1">
@@ -57,7 +64,7 @@ export default async function AgentLayout({ children }: { children: React.ReactN
               name={profile.full_name ?? null}
               email={user.email ?? null}
               avatarUrl={profile.avatar_url ?? null}
-              role={profile.role ?? null}
+              role={roleName}
             />
           </div>
         </div>

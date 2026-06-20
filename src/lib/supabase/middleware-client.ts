@@ -47,13 +47,15 @@ export async function updateSession(request: NextRequest) {
 
   // Role-gate admin routes
   if (user && isAdminRoute) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('user_role(name)')
       .eq('id', user.id)
       .single()
 
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+    const roleRow = userRow?.user_role as unknown
+    const roleName: string | undefined = Array.isArray(roleRow) ? roleRow[0]?.name : (roleRow as { name?: string } | null)?.name
+    if (!roleName || (roleName !== 'Admin' && roleName !== 'Super Admin')) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
@@ -62,14 +64,16 @@ export async function updateSession(request: NextRequest) {
 
   // Role-gate agent routes
   if (user && isAgentRoute) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('user_role(name)')
       .eq('id', user.id)
       .single()
 
-    const agentRoles = ['field_agent', 'admin', 'super_admin']
-    if (!profile || !agentRoles.includes(profile.role)) {
+    const roleRow = userRow?.user_role as unknown
+    const roleName: string | undefined = Array.isArray(roleRow) ? roleRow[0]?.name : (roleRow as { name?: string } | null)?.name
+    const agentRoles = ['Field Agent', 'Admin', 'Super Admin']
+    if (!roleName || !agentRoles.includes(roleName)) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)

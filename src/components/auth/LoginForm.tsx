@@ -32,11 +32,18 @@ export function LoginForm() {
     setServerError(null)
     try {
       const supabase = createClient()
+      console.log('supabase: ', supabase)
+      console.log('values: ', values)
+
       await signInWithPassword(supabase, values.email, values.password)
+
+      console.log('result: ',await signInWithPassword(supabase, values.email, values.password))
       router.push('/dashboard')
       router.refresh()
     } catch (err) {
       setServerError((err as any)?.message ?? 'Sign in failed')
+      console.log('err', err)
+      console.log('message:', setServerError((err as any)?.message))
     }
   }
 

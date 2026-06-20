@@ -1,15 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
-import { signUpWithPassword, resendConfirmation } from '@/services/authService'
 import { Mail } from 'lucide-react'
 import Link from 'next/link'
 
@@ -30,7 +27,6 @@ export function SignupForm() {
   const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null)
   const [resendLoading, setResendLoading]   = useState(false)
   const [resendSent, setResendSent]         = useState(false)
-  const router = useRouter()
 
   const {
     register,
@@ -40,18 +36,21 @@ export function SignupForm() {
 
   async function onSubmit(values: FormValues) {
     setServerError(null)
-    try {
-      const supabase = createClient()
-      const { session } = await signUpWithPassword(supabase, values.email, values.password, values.fullName)
-      if (session) {
-        router.push('/dashboard')
-        router.refresh()
-      } else {
-        setConfirmedEmail(values.email)
-      }
-    } catch (err) {
-      setServerError((err as Error).message ?? 'Sign up failed')
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:    values.email,
+        password: values.password,
+        fullName: values.fullName,
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      setServerError(json.error ?? 'Sign up failed')
+      return
     }
+    setConfirmedEmail(values.email)
   }
 
   async function handleResend() {
@@ -59,8 +58,11 @@ export function SignupForm() {
     setResendLoading(true)
     setResendSent(false)
     try {
-      const supabase = createClient()
-      await resendConfirmation(supabase, confirmedEmail)
+      await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: confirmedEmail }),
+      })
       setResendSent(true)
     } catch {
       // silently fail — user still sees the original instruction
