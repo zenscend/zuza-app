@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getVendorById } from '@/services/vendorService'
-import { getProfile } from '@/services/profileService'
+import { getUser } from '@/services/userService'
 import { VendorStatusBadge } from '@/components/admin/VendorStatusBadge'
 import { VendorStatusActions } from '@/components/admin/VendorStatusActions'
 import { Badge } from '@/components/ui/badge'
@@ -60,7 +60,7 @@ export default async function VendorDetailPage({
   let onboardedByName: string | null = null
   if (vendor.onboarded_by) {
     try {
-      const p = await getProfile(supabase, vendor.onboarded_by)
+      const p = await getUser(supabase, vendor.onboarded_by)
       onboardedByName = p.full_name
     } catch { /* optional */ }
   }

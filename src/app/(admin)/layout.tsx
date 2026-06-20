@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getProfile } from '@/services/profileService'
+import { getUser } from '@/services/userService'
+import { ROLE } from '@/types'
 import { ZuzaLogo } from '@/components/layout/ZuzaLogo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { UserMenu } from '@/components/layout/UserMenu'
@@ -14,8 +15,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect('/login')
 
-  const profile = await getProfile(supabase, user.id)
-  if (profile.role !== 'admin' && profile.role !== 'super_admin') {
+  let profile
+  try {
+    profile = await getUser(supabase, user.id)
+  } catch {
+    redirect('/dashboard')
+  }
+
+  const roleName = profile.role?.name ?? null
+  if (roleName !== ROLE.ADMIN && roleName !== ROLE.SUPER_ADMIN) {
     redirect('/dashboard')
   }
 
@@ -38,6 +46,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <nav className="flex items-center gap-1">
             <NavLink href="/admin/vendors">Vendors</NavLink>
+            <NavLink href="/admin/users">Users</NavLink>
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
@@ -46,7 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               name={profile.full_name ?? null}
               email={user.email ?? null}
               avatarUrl={profile.avatar_url ?? null}
-              role={profile.role ?? null}
+              role={roleName}
             />
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getProfile } from '@/services/profileService'
+import { getUser } from '@/services/userService'
+import { ROLE } from '@/types'
 import { ZuzaLogo } from '@/components/layout/ZuzaLogo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { UserMenu } from '@/components/layout/UserMenu'
@@ -16,13 +17,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   let profile = null
   try {
-    profile = await getProfile(supabase, user.id)
+    profile = await getUser(supabase, user.id)
   } catch {
-    // profile may not exist yet
+    // user row may not exist yet
   }
 
-  const isAdmin       = profile?.role === 'admin' || profile?.role === 'super_admin'
-  const isFieldAgent  = profile?.role === 'field_agent'
+  const roleName     = profile?.role?.name ?? null
+  const isAdmin      = roleName === ROLE.ADMIN || roleName === ROLE.SUPER_ADMIN
+  const isFieldAgent = roleName === ROLE.FIELD_AGENT
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,7 +68,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               name={profile?.full_name ?? null}
               email={user.email ?? null}
               avatarUrl={profile?.avatar_url ?? null}
-              role={profile?.role ?? null}
+              role={roleName}
             />
           </div>
         </div>

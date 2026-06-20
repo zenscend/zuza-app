@@ -1,8 +1,23 @@
-export type UserRole = 'vendor' | 'field_agent' | 'admin' | 'super_admin'
-export type BillingStatus = 'free' | 'active' | 'past_due' | 'cancelled'
 export type VendorStatus = 'pending' | 'active' | 'inactive' | 'rejected'
 export type BusinessType = 'kota_outlet' | 'chisanyama' | 'street_food' | 'spaza_shop' | 'other'
 export type PrimaryProduct = 'cooking_oil' | 'potatoes'
+
+export interface UserRole {
+  id: string
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+// Canonical role name strings — match what is seeded in the user_role table
+export const ROLE = {
+  VENDOR:      'Vendor',
+  FIELD_AGENT: 'Field Agent',
+  ADMIN:       'Admin',
+  SUPER_ADMIN: 'Super Admin',
+} as const
+
+export type RoleName = typeof ROLE[keyof typeof ROLE]
 
 export const SA_PROVINCES = [
   'Eastern Cape',
@@ -30,24 +45,24 @@ export interface ProductLine {
 }
 
 export const PAYMENT_METHODS = [
-  { value: 'card_machine',  label: 'Card Machine' },
-  { value: 'cash',          label: 'Cash' },
-  { value: 'eft',           label: 'EFT / Instant EFT' },
+  { value: 'card_machine',   label: 'Card Machine' },
+  { value: 'cash',           label: 'Cash' },
+  { value: 'eft',            label: 'EFT / Instant EFT' },
   { value: 'online_gateway', label: 'Online Payment Gateway' },
 ] as const
 
 export const ORDER_VOLUMES = [
-  { value: 'under_100',    label: 'Under 100 orders/month' },
-  { value: '100_500',      label: '100 – 500 orders/month' },
-  { value: '500_2000',     label: '500 – 2 000 orders/month' },
-  { value: '2000_plus',    label: '2 000+ orders/month' },
+  { value: 'under_100',  label: 'Under 100 orders/month' },
+  { value: '100_500',    label: '100 – 500 orders/month' },
+  { value: '500_2000',   label: '500 – 2 000 orders/month' },
+  { value: '2000_plus',  label: '2 000+ orders/month' },
 ] as const
 
 export const STOCK_ORDER_METHODS = [
-  { value: 'cash_and_carry',      label: 'Walk-in Cash & Carry' },
-  { value: 'wholesaler_delivery', label: 'Local Wholesaler Delivery' },
-  { value: 'bakkie_trader',       label: 'Independent Bakkie Traders' },
-  { value: 'other',               label: 'Other' },
+  { value: 'cash_and_carry',       label: 'Walk-in Cash & Carry' },
+  { value: 'wholesaler_delivery',  label: 'Local Wholesaler Delivery' },
+  { value: 'bakkie_trader',        label: 'Independent Bakkie Traders' },
+  { value: 'other',                label: 'Other' },
 ] as const
 
 export const CONTACT_PREFERENCES = [
@@ -56,13 +71,13 @@ export const CONTACT_PREFERENCES = [
   { value: 'call',     label: 'Phone Call' },
 ] as const
 
-export interface Profile {
+export interface User {
   id: string
   full_name: string | null
   avatar_url: string | null
   phone_number: string | null
-  role: UserRole
-  billing_status: BillingStatus
+  user_role_id: string
+  role?: UserRole          // joined when needed
   created_at: string
   updated_at: string
 }

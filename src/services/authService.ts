@@ -44,18 +44,6 @@ export async function signUpWithPassword(
   return data
 }
 
-export async function resendConfirmation(client: SupabaseClient, email: string) {
-  // SWAP POINT: replace with fetch('https://api.zuzatech.com/auth/resend-confirmation')
-  const { error } = await client.auth.resend({
-    type: 'signup',
-    email,
-    options: {
-      emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zuzatech.com')}/api/auth/callback`,
-    },
-  })
-  if (error) throw new Error(friendlyAuthError(error.message))
-}
-
 export async function signInWithGoogle(client: SupabaseClient) {
   // SWAP POINT: replace with fetch('https://api.zuzatech.com/auth/google')
   const { data, error } = await client.auth.signInWithOAuth({
@@ -66,17 +54,6 @@ export async function signInWithGoogle(client: SupabaseClient) {
   })
   if (error) throw new Error(friendlyAuthError(error.message))
   return data
-}
-
-export async function sendMagicLink(client: SupabaseClient, email: string) {
-  // SWAP POINT: replace with fetch('https://api.zuzatech.com/auth/magic-link')
-  const { error } = await client.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zuzatech.com')}/api/auth/callback`,
-    },
-  })
-  if (error) throw new Error(friendlyAuthError(error.message))
 }
 
 export async function signOut(client: SupabaseClient) {
