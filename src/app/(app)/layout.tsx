@@ -58,6 +58,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Separator orientation="vertical" className="h-5" />
               <nav className="flex items-center gap-1">
                 <NavLink href="/admin/vendors">Vendors</NavLink>
+                <NavLink href="/admin/users">Users</NavLink>
               </nav>
             </>
           )}
